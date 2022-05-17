@@ -1,2 +1,2 @@
 # cam_workspace
-respaldo de codigos urilizados en el desarrollo de camara MT9V034 para uso en soluciones agricolas 
+repositorio para respaldar todas las pruebas y apuntes en torno al desarrollo de la cámara MT9V034 con su modulo de desarrollo OpenMV
