@@ -42,7 +42,7 @@ def coords(bbox):
         tags_array.append(tag_aux)
     return tags_array
 
-img = cv2.imread('img/singlemarkerssource.png')
+img = cv2.imread('img/example.png')
 img = cv2.resize(img,(752,480))
 bbox,ids = findaruco(img)
 tags_array=coords(bbox)
@@ -62,4 +62,4 @@ for i in range(0,len(tags_array)):
     cv2.line(img, (tag.corner3.x,tag.corner3.y), (tag.corner4.x,tag.corner4.y), green, thickness)
     cv2.line(img, (tag.corner4.x,tag.corner4.y), (tag.corner1.x,tag.corner1.y), morado, thickness)
 cv2.imshow('test tags',img)
-cv2.waitKey(10000)
+cv2.waitKey(10000) ##milisegundos
