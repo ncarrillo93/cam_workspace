@@ -86,6 +86,8 @@ def print_roi_test(roi,colors,time,thickness):
 #import image and generate copy
 img_src = cv2.imread('img/proy4.jpeg')
 img_dst=img_src.copy()
+cv2.imshow('Warped Source Image',cv2.resize(img_src,(1024,720)))
+cv2.waitKey(0)
 
 ##get aruco corners 
 bbox,ids = findaruco(img_src)
@@ -101,5 +103,5 @@ roi1,roi2,roi3=get_rois(tag=tags_array[0],frame=100,offset=20)
 ##print roi's in images
 print_roi_test(roi=[roi1,roi2,roi3],
                colors=[(0,0,255), (255,0,0), (0,255,0), (226,53,226)],
-               time=10000,
+               time=0,
                thickness=2)
