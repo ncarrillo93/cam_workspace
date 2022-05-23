@@ -44,14 +44,11 @@ def coords(bbox):
 
 # Main:
 
-img = cv2.imread('img/proy4.jpeg')
-img = cv2.resize(img,(1024,720))
-bbox,ids = findaruco(img)
+img_src = cv2.imread('img/proy4.jpeg')
+img_dst=img_src.copy()
+#img_src = cv2.resize(img_src,(1024,720))
+bbox,ids = findaruco(img_src)
 tags_array=coords(bbox)
-print(img.shape[0])
-
-
-
 '''
 pts_src y pts_dst son matrices de puntos numpy
 en las imágenes de origen y destino. necesitamos al menos
@@ -71,19 +68,12 @@ dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.cor
 dist1=int(math.sqrt(pow(tag.corner3.x-tag.corner2.x,2)+pow(tag.corner3.y-tag.corner2.y,2)))
 dist2=int(math.sqrt(pow(tag.corner4.x-tag.corner3.x,2)+pow(tag.corner4.y-tag.corner3.y,2)))
 dist3=int(math.sqrt(pow(tag.corner4.x-tag.corner1.x,2)+pow(tag.corner4.y-tag.corner1.y,2)))
-pts_dst=np.array([[0,0],
-                  [0,2*dist],
-                  [2*dist1,2*dist2],
-                  [2*dist3,0]])
 
+pts_dst=np.array([[0,0],[0,2*dist],[2*dist1,2*dist2],[2*dist3,0]])
 h, status = cv2.findHomography(pts_src, pts_dst)
-'''
-La homografía calculada se puede utilizar para deformar
-la imagen de origen al destino. El tamaño es el
-tamaño (ancho, alto) de im_dst
-'''
-im_dst = cv2.warpPerspective(img, h, (im_dst.shape[1],im_dst.shape[0])  )
-
+print(h,status)
+im_dst = cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )
+print(img_dst.shape[1] , img_dst.shape[0])
 #  Line thickness of 2 px
 # Green color in BGR
 red  = (0,0,255)  
@@ -92,11 +82,12 @@ green = (0,255,0)
 morado = (226,53,226)
 
 thickness = 2
-cv2.line(img,pts_src[0] , pts_src[1], red, thickness)
-cv2.line(img,pts_src[1] , pts_src[2], blue, thickness)
-cv2.line(img,pts_src[2] , pts_src[3], green, thickness)
-cv2.line(img,pts_src[3] , pts_src[0], morado, thickness)
+cv2.line(img_src,pts_src[0] , pts_src[1], red, thickness)
+cv2.line(img_src,pts_src[1] , pts_src[2], blue, thickness)
+cv2.line(img_src,pts_src[2] , pts_src[3], green, thickness)
+cv2.line(img_src,pts_src[3] , pts_src[0], morado, thickness)
 
 
-cv2.imshow('test tags',img)
-cv2.waitKey(10000) ##milisegundos
+cv2.imshow('test tags',img_src)
+cv2.imshow('Warped Source Image',img_dst)
+cv2.waitKey(0) ##milisegundos
