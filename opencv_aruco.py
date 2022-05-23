@@ -40,54 +40,49 @@ def coords(bbox):
         tag_aux=Tag(aux[0],aux[1],aux[2],aux[3])
         tags_array.append(tag_aux)
     return tags_array
+def get_homography(img_src,tags_array):
+    tag=tags_array[0]
+    '''
+    print(' [',tag.corner1.x,tag.corner1.y,'] ',
+          ' [',tag.corner2.x,tag.corner2.y,'] ',
+          ' [',tag.corner3.x,tag.corner3.y,'] ',
+          ' [',tag.corner4.x,tag.corner4.y,'] ')
+    '''
+    pts_src=np.array([[tag.corner1.x , tag.corner1.y],
+                    [2*tag.corner2.x - tag.corner1.x , 2*tag.corner2.y -tag.corner1.y],
+                    [2*tag.corner3.x - tag.corner1.x , 2*tag.corner3.y-tag.corner1.y],
+                    [2*tag.corner4.x - tag.corner1.x , 2*tag.corner4.y-tag.corner1.y]])
+
+    dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2)))
+    dist1=int(math.sqrt(pow(tag.corner3.x-tag.corner2.x,2)+pow(tag.corner3.y-tag.corner2.y,2)))
+    dist2=int(math.sqrt(pow(tag.corner4.x-tag.corner3.x,2)+pow(tag.corner4.y-tag.corner3.y,2)))
+    dist3=int(math.sqrt(pow(tag.corner4.x-tag.corner1.x,2)+pow(tag.corner4.y-tag.corner1.y,2)))
+    
+    pts_dst=np.array([[0,0],[0,dist],[dist,dist],[dist,0]])
+    #pts_dst=np.array([[0,0],[0,2*dist],[2*dist1,2*dist2],[2*dist3,0]])
+    h, status = cv2.findHomography(pts_src, pts_dst)
+    
+    
+    red, blue, green, morado  = (0,0,255), (255,0,0), (0,255,0), (226,53,226)
+    thickness = 2
+    cv2.line(img_src,pts_src[0] , pts_src[1], red, thickness)
+    cv2.line(img_src,pts_src[1] , pts_src[2], blue, thickness)
+    cv2.line(img_src,pts_src[2] , pts_src[3], green, thickness)
+    cv2.line(img_src,pts_src[3] , pts_src[0], morado, thickness)
+    
+    
+
+    return cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )
 
 
 # Main:
-
 img_src = cv2.imread('img/proy4.jpeg')
 img_dst=img_src.copy()
-#img_src = cv2.resize(img_src,(1024,720))
 bbox,ids = findaruco(img_src)
 tags_array=coords(bbox)
-'''
-pts_src y pts_dst son matrices de puntos numpy
-en las imágenes de origen y destino. necesitamos al menos
-puntos correspondientes.
-'''
-tag=tags_array[0]
-print(' [',tag.corner1.x,tag.corner1.y,'] ',
-      ' [',tag.corner2.x,tag.corner2.y,'] ',
-      ' [',tag.corner3.x,tag.corner3.y,'] ',
-      ' [',tag.corner4.x,tag.corner4.y,'] ')
-pts_src=np.array([[tag.corner1.x , tag.corner1.y],
-                  [2*tag.corner2.x - tag.corner1.x , 2*tag.corner2.y -tag.corner1.y],
-                  [2*tag.corner3.x - tag.corner1.x , 2*tag.corner3.y-tag.corner1.y],
-                  [2*tag.corner4.x - tag.corner1.x , 2*tag.corner4.y-tag.corner1.y]])
+img_out=get_homography(img_src,tags_array)
 
-dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2)))
-dist1=int(math.sqrt(pow(tag.corner3.x-tag.corner2.x,2)+pow(tag.corner3.y-tag.corner2.y,2)))
-dist2=int(math.sqrt(pow(tag.corner4.x-tag.corner3.x,2)+pow(tag.corner4.y-tag.corner3.y,2)))
-dist3=int(math.sqrt(pow(tag.corner4.x-tag.corner1.x,2)+pow(tag.corner4.y-tag.corner1.y,2)))
-
-pts_dst=np.array([[0,0],[0,2*dist],[2*dist1,2*dist2],[2*dist3,0]])
-h, status = cv2.findHomography(pts_src, pts_dst)
-print(h,status)
-im_dst = cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )
-print(img_dst.shape[1] , img_dst.shape[0])
-#  Line thickness of 2 px
-# Green color in BGR
-red  = (0,0,255)  
-blue  = (255,0,0)  
-green = (0,255,0)  
-morado = (226,53,226)
-
-thickness = 2
-cv2.line(img_src,pts_src[0] , pts_src[1], red, thickness)
-cv2.line(img_src,pts_src[1] , pts_src[2], blue, thickness)
-cv2.line(img_src,pts_src[2] , pts_src[3], green, thickness)
-cv2.line(img_src,pts_src[3] , pts_src[0], morado, thickness)
-
-
-cv2.imshow('test tags',img_src)
-cv2.imshow('Warped Source Image',img_dst)
-cv2.waitKey(0) ##milisegundos
+cv2.imshow('test tags',cv2.resize(img_src,(1024,720)))
+cv2.imshow('Destination Image',cv2.resize(img_dst,(1024,720)))
+cv2.imshow('Warped Source Image',cv2.resize(img_out,(1024,720)))
+cv2.waitKey(10000) ##milisegundos
