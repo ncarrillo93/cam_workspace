@@ -10,6 +10,8 @@ class Corner:
     def __init__(self,x,y):
         self.x=x
         self.y=y
+
+
 class Tag:
     corner1=None
     corner2=None
@@ -20,6 +22,8 @@ class Tag:
         self.corner2=corner2
         self.corner3=corner3
         self.corner4=corner4    
+
+
 def findaruco(img,marker_size=6,total_markers=250,draw=True):
     gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     key =getattr(aruco,f'DICT_{marker_size}X{marker_size}_{total_markers}')
@@ -29,6 +33,8 @@ def findaruco(img,marker_size=6,total_markers=250,draw=True):
     if draw:
         aruco.drawDetectedMarkers(img,bbox)
     return bbox,ids
+
+
 def coords(bbox):
     tags_array=[]
     for i in range(0,len(bbox)):
@@ -40,6 +46,8 @@ def coords(bbox):
         tag_aux=Tag(aux[0],aux[1],aux[2],aux[3])
         tags_array.append(tag_aux)
     return tags_array
+
+
 def get_homography(img_src,tags_array):
     tag=tags_array[0]
     pts_src=np.array([[tag.corner1.x , tag.corner1.y],
@@ -49,15 +57,9 @@ def get_homography(img_src,tags_array):
     dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2)))
     pts_dst=np.array([[0,0],[dist,0],[dist,dist],[0,dist]])
     h, status = cv2.findHomography(pts_src, pts_dst)
-    '''
-    red, blue, green, morado  = (0,0,255), (255,0,0), (0,255,0), (226,53,226)
-    thickness = 2
-    cv2.line(img_src,pts_src[0] , pts_src[1], red, thickness)
-    cv2.line(img_src,pts_src[1] , pts_src[2], blue, thickness)
-    cv2.line(img_src,pts_src[2] , pts_src[3], green, thickness)
-    cv2.line(img_src,pts_src[3] , pts_src[0], morado, thickness)
-    '''
     return cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )# Main:
+
+
 def get_rois(tag,frame,offset):
     frame, offset=100,20
     dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2))) + offset
@@ -67,6 +69,8 @@ def get_rois(tag,frame,offset):
     roi2=np.array([[x3,y3],[x4,y3],[x4,y4],[x3,y4]])
     roi3=np.array([[x1,y3],[x2,y3],[x2,y4],[x1,y4]])
     return roi1,roi2,roi3
+
+
 def print_roi_test(roi,colors,time,thickness):
     for i in roi:
         cv2.line(img_out,i[0],i[1], colors[0], thickness)
@@ -76,7 +80,8 @@ def print_roi_test(roi,colors,time,thickness):
     cv2.imshow('Warped Source Image',cv2.resize(img_out,(1024,720)))
     cv2.waitKey(time)
 
-# MAIN:
+
+# MAIN:--------------------------------------------------------------------
 
 #import image and generate copy
 img_src = cv2.imread('img/proy4.jpeg')
