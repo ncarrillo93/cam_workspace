@@ -49,15 +49,32 @@ def get_homography(img_src,tags_array):
     dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2)))
     pts_dst=np.array([[0,0],[dist,0],[dist,dist],[0,dist]])
     h, status = cv2.findHomography(pts_src, pts_dst)
+    '''
     red, blue, green, morado  = (0,0,255), (255,0,0), (0,255,0), (226,53,226)
     thickness = 2
     cv2.line(img_src,pts_src[0] , pts_src[1], red, thickness)
     cv2.line(img_src,pts_src[1] , pts_src[2], blue, thickness)
     cv2.line(img_src,pts_src[2] , pts_src[3], green, thickness)
     cv2.line(img_src,pts_src[3] , pts_src[0], morado, thickness)
-
+    '''
     return cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )# Main:
-
+def get_rois(tag,frame,offset):
+    frame, offset=100,20
+    dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2))) + offset
+    x1,x2,x3,x4 = frame, dist-frame, dist+frame, (2*dist)-frame
+    y1,y2,y3,y4 = frame, dist-frame, dist+frame, (2*dist)-frame
+    roi1=np.array([[x3,y1],[x4,y1],[x4,y2],[x3,y2]])
+    roi2=np.array([[x3,y3],[x4,y3],[x4,y4],[x3,y4]])
+    roi3=np.array([[x1,y3],[x2,y3],[x2,y4],[x1,y4]])
+    return roi1,roi2,roi3
+def print_roi_test(roi,colors,time,thickness):
+    for i in roi:
+        cv2.line(img_out,i[0],i[1], colors[0], thickness)
+        cv2.line(img_out,i[1],i[2], colors[1], thickness)
+        cv2.line(img_out,i[2],i[3], colors[2], thickness)
+        cv2.line(img_out,i[3],i[0], colors[3], thickness)
+    cv2.imshow('Warped Source Image',cv2.resize(img_out,(1024,720)))
+    cv2.waitKey(time)
 
 # MAIN:
 
@@ -73,11 +90,11 @@ img_out=get_homography(img_src,tags_array)
 
 #get colors ROI
 bbox,ids = findaruco(img_out)
-print(bbox)
+tags_array=coords(bbox)
+roi1,roi2,roi3=get_rois(tag=tags_array[0],frame=100,offset=20)
 
-
-#Print images
-cv2.imshow('test tags',cv2.resize(img_src,(1024,720)))
-cv2.imshow('Destination Image',cv2.resize(img_dst,(1024,720)))
-cv2.imshow('Warped Source Image',cv2.resize(img_out,(1024,720)))
-cv2.waitKey(0) 
+##print roi's in images
+print_roi_test(roi=[roi1,roi2,roi3],
+               colors=[(0,0,255), (255,0,0), (0,255,0), (226,53,226)],
+               time=10000,
+               thickness=2)
