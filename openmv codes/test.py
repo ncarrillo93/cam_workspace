@@ -11,8 +11,6 @@ sensor.skip_frames(time = 2000)     # Wait for settings take effect.
 clock = time.clock()                # Create a clock object to track the FPS.
 
 while(True):
-    clock.tick()                    # Update the FPS clock.
-    for i in range(0,100,1):
-        img = sensor.snapshot().to_bitmap().lens_corr((i*0.1)+0.1)
-    print(clock.fps())              # Note: OpenMV Cam runs about half as fast when connected
-                                    # to the IDE. The FPS should increase once disconnected.
+    img = sensor.snapshot().to_bitmap()
+    pyb.delay(500)
+    img = sensor.snapshot().to_bitmap().lens_corr(strength=0.8)
