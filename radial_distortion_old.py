@@ -1,6 +1,11 @@
+import numpy as np
+import cv2 as cv
+import glob
+
+
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-a,b=9,6
+a,b=6,9
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((6*7,3), np.float32)
 objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
@@ -8,13 +13,14 @@ objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 images = glob.glob('img/images/far/*.jpg')
+print(images)
 for fname in images:
     img = cv.imread(fname)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # Find the chess board corners
     ret, corners = cv.findChessboardCorners(img, (a,b), None)
     # If found, add object points, image points (after refining them)
-    print(ret)
+    #print(ret)
     if ret == True:
         objpoints.append(objp)
         corners2 = cv.cornerSubPix(gray,corners, (a,b), (-1,-1), criteria)
