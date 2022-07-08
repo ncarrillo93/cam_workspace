@@ -15,34 +15,33 @@ class Parameters:
         self.rvecs = rvecs
         self.tvecs = tvecs
 
-def calibrate(path_images,extension_images,size_chessboard): #'img/images/far/ path example
+def calibrate(path_image,size_chessboard): #'img/images/far/ path example
     # termination criteria
-    criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, size_chessboard, 0.001)
+    criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, int(size_chessboard), 0.001)
     a,b=9,6
     # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-    objp = np.zeros((6*7,3), np.float32)
-    objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
+    objp = np.zeros((a*b,3), np.float32)
+    objp[:,:2] = np.mgrid[0:a,0:b].T.reshape(-1,2)
     # Arrays to store object points and image points from all the images.
     objpoints = [] # 3d point in real world space
     imgpoints = [] # 2d points in image plane.
-    images = glob.glob(path_images+'*.'+extension_images)
-    for fname in images:
-        img = cv.imread(fname)
-        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        # Find the chess board corners
-        ret, corners = cv.findChessboardCorners(img, (a,b), None)
-        # If found, add object points, image points (after refining them)
-        if ret == True:
-            objpoints.append(objp)
-            corners2 = cv.cornerSubPix(gray,corners, (a,b), (-1,-1), criteria)
-            imgpoints.append(corners)
-            # Draw and display the corners
-            #cv.drawChessboardCorners(img, (a,b), corners2, ret)
-            #cv.imshow('img '+str(fname), cv.resize(img,(600,400)))
-            #cv.waitKey(100)
-    #cv.destroyAllWindows()
+    img = cv.imread(path_image)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # Find the chess board corners
+    ret, corners = cv.findChessboardCorners(img, (a,b), None)
+    # If found, add object points, image points (after refining them)
+    if ret == True:
+        objpoints.append(objp)
+        corners = cv.cornerSubPix(gray,corners, (a,b), (-1,-1), criteria)
+        imgpoints.append(corners)
+        #cv.drawChessboardCorners(img, (a,b), corners2, ret)
+        #cv.imshow('img '+str(fname), cv.resize(img,(600,400)))
+        #cv.waitKey(100)
+    cv.destroyAllWindows()
     ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-    return Parameters(ret,mtx,dist,rvecs,tvecs)
+    #parameters=Parameters(ret, mtx, dist, rvecs, tvecs)
+    #return parameters
+    return Parameters(ret, mtx, dist, rvecs, tvecs)
 
 def radial_correction(path_images,extension_images,parameters):
     images = glob.glob(path_images+'*.'+extension_images)
