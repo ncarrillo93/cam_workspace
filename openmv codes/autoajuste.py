@@ -3,6 +3,7 @@ import sensor, image, time, math, omv
 sensor.reset()                      # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
 sensor.set_framesize(sensor.WVGA2)   # Set frame size to QVGA (320x240)
+
 #sensor.set_auto_exposure(False,exposure_us=int(5000))
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
 tag_families = image.TAG36H11
@@ -17,14 +18,18 @@ def find_coordenates():
         for j in range(0,480,int(h/4)):
             try:
                 tag_list.extend(img.find_apriltags(roi=(x+i,y+j,w,h), families=tag_families))
-            except (MemoryError): # No detecte todas las excepciones, de lo contrario no podrá detener el script.
-                print(None)
+            except (MemoryError):# No detecte todas las excepciones,
+                print(None)      #de lo contrario no podrá detener el script.
                 pass
             if(len(tag_list)>2):
                 tag_list=[]
             if(len(tag_list)==2):
                 if(tag_list[0].id() != tag_list[1].id()):
                     for tag in tag_list:
+
+                        img.draw_rectangle(tag.rect(), color = (255, 0, 0))
+                        img.draw_cross(tag.cx(), tag.cy(), color = (0, 255, 0))
+
                         centros.append((tag.cx(),tag.cy()))
                         w2=int(tag.w()/2)
                         h2=int(tag.h()/2)
@@ -35,75 +40,43 @@ def find_coordenates():
                             centros,tag_list=[[],[]]
                             return aux
 
-#Modificar. usare otro metodo o evaluar distintos y elegir el mas optimo?
-def auto_ajuste(coord,lo,hi,lo_exp,hi_exp):
-    mid_lock = int((hi+lo)/2)
-    while (1):
-        mid_exp = int((hi_exp+lo_exp)/2)
-        print (mid_exp)
-        while (1):
-            sensor.set_auto_exposure(False, exposure_us=lo_exp)
-            aux=img.get_histogram(roi=coord )
-            du_low = aux.get_statistics().mean()
 
-            if (du_low is not None):
-                break
-            else:
-                lo_exp = lo_exp + 10
-        print (du_low)
-        while (1):
-            sensor.set_auto_exposure(False, exposure_us=hi_exp)
-            aux=img.get_histogram(roi=coord )
-            du_high = aux.get_statistics().mean()
+def bisection(roi,ideal,minimo,maximo,tol):
+    mitad=(minimo+maximo)/2
+    print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
+    while True:
+        mean=evaluate(roi,mitad)
+        print(mean)
+        if mean<ideal:
 
-            print (du_high)
-            if (du_high is not None):
-                break
-            else:
-                hi_exp = hi_exp - 10
-                print ("Hi: {}".format(hi_exp))
-        while (1):
-            sensor.set_auto_exposure(False, exposure_us=mid_exp)
-            aux=img.get_histogram(roi=coord )
-            du_mid = aux.get_statistics().mean()
-            print (du_mid)
-            if (du_mid is not None):
-                break
-            else:
-                hi_exp = mid_exp
-                mid_exp = mid_exp - 10
-        print (du_mid)
-        if (du_mid > lo and du_mid < hi):
-            print ("OKOK")
-            return mid_exp
-        elif (du_mid < mid_lock):
-                lo_exp = mid_exp
-        elif (du_mid > mid_lock):
-                hi_exp = mid_exp
+            minimo=mitad
+            mitad=int((minimo+maximo)/4)
 
+            print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
 
-def auto_ajuste_2(coord,lo,hi,lo_exp,hi_exp):
-    flag=1
-    ideal=(lo+hi)/2
-    mitad_exp=(lo_exp+hi_exp)/2
-    while(flag):
+        #if evaluate(roi,mitad) >ideal:
+        else:
+            maximo=mitad
+            mitad=int((minimo+maximo)/4)
 
+            print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
 
-        sensor.set_auto_exposure(False, exposure_us=int(lo_exp))
-        mitad = img.get_histogram(roi=coord ).get_statistics().mean()
-        if(mitad<ideal):
-            lo=mitad
-            lo_exp=mitad_exp
+        if (ideal-tol)<= mitad  and mitad <= (ideal+tol):
 
-        sensor.set_auto_exposure(False, exposure_us=int(hi_exp))
-        mitad = img.get_histogram(roi=coord ).get_statistics().mean()
-        if(mitad>ideal):
-            hi=mitad
-            hi_exp=mitad_exp
+            print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
 
-coord=find_coordenates()
-while(True):
-    img=sensor.snapshot()
-    img.draw_rectangle(coord,color=(0,0,0))
+            return mitad
 
-    auto_ajuste_2(coord,180,220,0,10000)
+def evaluate(roi,time_exp):
+    sensor.set_auto_exposure(False,exposure_us=int(time_exp))
+    img = sensor.snapshot()
+    #aux = img.get_statistics(roi=roi)
+    aux = img.get_statistics()
+    return aux.mean()
+
+coord=None
+while coord is None:
+    coord=find_coordenates()
+print(coord)
+img=sensor.snapshot()
+print(bisection(coord,200,0,15000,50))
