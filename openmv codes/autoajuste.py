@@ -1,10 +1,9 @@
 import sensor, image, time, math, omv
 
-sensor.reset()                      # Reset and initialize the sensor.
-sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
-sensor.set_framesize(sensor.WVGA2)   # Set frame size to QVGA (320x240)
+sensor.reset()
+sensor.set_pixformat(sensor.GRAYSCALE)
+sensor.set_framesize(sensor.WVGA2)   # Set frame size to QVGA (752x480)
 
-#sensor.set_auto_exposure(False,exposure_us=int(5000))
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
 tag_families = image.TAG36H11
 
@@ -43,40 +42,35 @@ def find_coordenates():
 
 def bisection(roi,ideal,minimo,maximo,tol):
     mitad=(minimo+maximo)/2
-    print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
+    mean=evaluate(roi,mitad)
     while True:
         mean=evaluate(roi,mitad)
-        print(mean)
-        if mean<ideal:
-
+        if mean<=ideal:
             minimo=mitad
-            mitad=int((minimo+maximo)/4)
-
-            print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
-
-        #if evaluate(roi,mitad) >ideal:
+            mitad=int((minimo+maximo)/2)
+        mean=evaluate(roi,mitad)
         else:
             maximo=mitad
-            mitad=int((minimo+maximo)/4)
-
-            print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
-
-        if (ideal-tol)<= mitad  and mitad <= (ideal+tol):
-
-            print('|min: ',minimo,'|maximo:',maximo,'| mitad:',mitad)
-
-            return mitad
+            mitad=int((minimo+maximo)/2)
+        if mean>=(ideal-tol):
+            if mean<=(ideal+tol):
+                return mitad
 
 def evaluate(roi,time_exp):
     sensor.set_auto_exposure(False,exposure_us=int(time_exp))
+    sensor.skip_frames(time = 500)
     img = sensor.snapshot()
-    #aux = img.get_statistics(roi=roi)
-    aux = img.get_statistics()
+    aux = img.get_statistics(roi=roi)
     return aux.mean()
 
+# main
 coord=None
 while coord is None:
     coord=find_coordenates()
 print(coord)
 img=sensor.snapshot()
-print(bisection(coord,200,0,15000,50))
+img.draw_rectangle(coord, color = (0, 0, 0),thickness=2)
+sensor.skip_frames(time=500)
+data=bisection(coord,200,0,20000,10)
+
+print('tiempo de exposición',data)

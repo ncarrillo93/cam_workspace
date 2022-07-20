@@ -40,11 +40,8 @@ def coords(bbox):
     for i in range(0,len(bbox)):
         aux=[]
         for j in range(0,4):
-            corner_aux=Corner(int(bbox[i][0][j][0]),int(bbox[i][0][j][1]))
-            aux.append(corner_aux)
-            #print(aux[len(aux)-1].x,aux[len(aux)-1].y)
-        tag_aux=Tag(aux[0],aux[1],aux[2],aux[3])
-        tags_array.append(tag_aux)
+            aux.append(Corner(int(bbox[i][0][j][0]),int(bbox[i][0][j][1])))
+        tags_array.append(Tag(aux[0],aux[1],aux[2],aux[3]))
     return tags_array
 
 
@@ -57,7 +54,7 @@ def get_homography(img_src,tags_array):
     dist =int(math.sqrt(pow(tag.corner2.x-tag.corner1.x,2)+pow(tag.corner2.y-tag.corner1.y,2)))
     pts_dst=np.array([[0,0],[dist,0],[dist,dist],[0,dist]])
     h, status = cv2.findHomography(pts_src, pts_dst)
-    return cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )# Main:
+    return cv2.warpPerspective(img_src, h, (img_dst.shape[1] , img_dst.shape[0])  )
 
 
 def get_rois(tag,frame,offset):
